@@ -83,10 +83,10 @@ public class EventMapper {
         for (Event e : event) {
             result.add(
                     eventToFullDto(
-                        e,
-                        initiators.get(e.getInitiator()),
-                        confirmedRequests.getOrDefault(e.getId(), 0L),
-                        ratings.getOrDefault(e.getId(), 0.0)
+                            e,
+                            initiators.get(e.getInitiator()),
+                            confirmedRequests.getOrDefault(e.getId(), 0L),
+                            ratings.getOrDefault(e.getId(), 0.0)
                     )
             );
         }
@@ -128,5 +128,4 @@ public class EventMapper {
                 ))
                 .collect(Collectors.toList());
     }
-
 }
