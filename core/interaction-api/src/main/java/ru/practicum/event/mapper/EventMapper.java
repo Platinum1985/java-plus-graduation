@@ -6,7 +6,6 @@ import ru.practicum.event.dto.event.EventFullDto;
 import ru.practicum.event.dto.event.EventShortDto;
 import ru.practicum.event.dto.event.NewEventDto;
 import ru.practicum.event.model.Category;
-import ru.practicum.user.User;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.state.EventState;
 import ru.practicum.event.model.Location;
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class EventMapper {
@@ -50,7 +50,7 @@ public class EventMapper {
             Event event,
             UserShortDto initiator,
             Long confirmedRequests,
-            Long views
+            Double ratings
     ) {
         return EventFullDto.builder()
                 .annotation(event.getAnnotation())
@@ -69,36 +69,31 @@ public class EventMapper {
                 .requestModeration(event.getRequestModeration())
                 .state(event.getState().toString())
                 .title(event.getTitle())
-                .views(views)
+                .rating(ratings)
                 .build();
     }
 
     public List<EventFullDto> eventToFullDto(
-            List<Event> event,
+            List<Event> events, // переименовал в множественное число для ясности
             Map<Long, UserShortDto> initiators,
-            Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Long> views // <eventId, views>
+            Map<Long, Long> confirmedRequests,
+            Map<Long, Double> ratings
     ) {
-        List<EventFullDto> result = new ArrayList<>();
-        for (Event e : event) {
-            result.add(
-                    eventToFullDto(
-                        e,
-                        initiators.get(e.getInitiator()),
-                        confirmedRequests.getOrDefault(e.getId(), 0L),
-                        views.getOrDefault(e.getId(), 0L)
-                    )
-            );
-        }
-
-        return result;
+        return events.stream()
+                .map(event -> eventToFullDto(
+                        event,
+                        initiators.get(event.getInitiator()),
+                        confirmedRequests.getOrDefault(event.getId(), 0L),
+                        ratings.getOrDefault(event.getId(), 0.0)
+                ))
+                .collect(Collectors.toList());
     }
 
     public EventShortDto eventToShortDto(
             Event event,
             UserShortDto initiator,
             Long confirmedRequests,
-            Long views
+            Double ratings
     ) {
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
@@ -109,30 +104,23 @@ public class EventMapper {
                 .initiator(initiator)
                 .paid(event.getPaid())
                 .title(event.getTitle())
-                .views(views)
+                .rating(ratings)
                 .build();
     }
 
     public List<EventShortDto> eventToShortDto(
             List<Event> event,
             Map<Long, UserShortDto> initiators,
-            Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Long> views // <eventId, views>
+            Map<Long, Long> confirmedRequests,
+            Map<Long, Double> ratings
     ) {
-
-        List<EventShortDto> result = new ArrayList<>();
-        for (Event e : event) {
-            result.add(
-                    eventToShortDto(
-                            e,
-                            initiators.get(e.getInitiator()),
-                            confirmedRequests.getOrDefault(e.getId(), 0L),
-                            views.getOrDefault(e.getId(), 0L)
-                    )
-            );
-        }
-
-        return result;
+        return event.stream()
+                .map(e -> eventToShortDto(
+                        e,
+                        initiators.get(e.getInitiator()),
+                        confirmedRequests.getOrDefault(e.getId(), 0L),
+                        ratings.getOrDefault(e.getId(), 0.0)
+                ))
+                .collect(Collectors.toList());
     }
-
 }
