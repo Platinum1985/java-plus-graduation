@@ -1,13 +1,16 @@
 package ru.practicum.event.dto.event;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.event.dto.category.CategoryDto;
 import ru.practicum.user.dto.UserShortDto;
 
+
+
 @Builder
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventFullDto {
