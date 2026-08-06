@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class EventMapper {
@@ -115,23 +116,17 @@ public class EventMapper {
     public List<EventShortDto> eventToShortDto(
             List<Event> event,
             Map<Long, UserShortDto> initiators,
-            Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Double> ratings // <eventId, ratings>
+            Map<Long, Long> confirmedRequests,
+            Map<Long, Double> ratings
     ) {
-
-        List<EventShortDto> result = new ArrayList<>();
-        for (Event e : event) {
-            result.add(
-                    eventToShortDto(
-                            e,
-                            initiators.get(e.getInitiator()),
-                            confirmedRequests.getOrDefault(e.getId(), 0L),
-                            ratings.getOrDefault(e.getId(), 0.0)
-                    )
-            );
-        }
-
-        return result;
+        return event.stream()
+                .map(e -> eventToShortDto(
+                        e,
+                        initiators.get(e.getInitiator()),
+                        confirmedRequests.getOrDefault(e.getId(), 0L),
+                        ratings.getOrDefault(e.getId(), 0.0)
+                ))
+                .collect(Collectors.toList());
     }
 
 }
