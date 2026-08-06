@@ -6,6 +6,7 @@ import ru.practicum.event.dto.event.EventFullDto;
 import ru.practicum.event.dto.event.EventShortDto;
 import ru.practicum.event.dto.event.NewEventDto;
 import ru.practicum.event.model.Category;
+import ru.practicum.user.User;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.state.EventState;
 import ru.practicum.event.model.Location;
@@ -49,7 +50,7 @@ public class EventMapper {
             Event event,
             UserShortDto initiator,
             Long confirmedRequests,
-            Double ratings
+            Long views
     ) {
         return EventFullDto.builder()
                 .annotation(event.getAnnotation())
@@ -68,7 +69,7 @@ public class EventMapper {
                 .requestModeration(event.getRequestModeration())
                 .state(event.getState().toString())
                 .title(event.getTitle())
-                .rating(ratings)
+                .views(views)
                 .build();
     }
 
@@ -76,7 +77,7 @@ public class EventMapper {
             List<Event> event,
             Map<Long, UserShortDto> initiators,
             Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Double> ratings // <eventId, ratings>
+            Map<Long, Long> views // <eventId, views>
     ) {
         List<EventFullDto> result = new ArrayList<>();
         for (Event e : event) {
@@ -85,7 +86,7 @@ public class EventMapper {
                         e,
                         initiators.get(e.getInitiator()),
                         confirmedRequests.getOrDefault(e.getId(), 0L),
-                        ratings.getOrDefault(e.getId(), 0.0)
+                        views.getOrDefault(e.getId(), 0L)
                     )
             );
         }
@@ -97,7 +98,7 @@ public class EventMapper {
             Event event,
             UserShortDto initiator,
             Long confirmedRequests,
-            Double ratings
+            Long views
     ) {
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
@@ -108,7 +109,7 @@ public class EventMapper {
                 .initiator(initiator)
                 .paid(event.getPaid())
                 .title(event.getTitle())
-                .rating(ratings)
+                .views(views)
                 .build();
     }
 
@@ -116,7 +117,7 @@ public class EventMapper {
             List<Event> event,
             Map<Long, UserShortDto> initiators,
             Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Double> ratings // <eventId, ratings>
+            Map<Long, Long> views // <eventId, views>
     ) {
 
         List<EventShortDto> result = new ArrayList<>();
@@ -126,7 +127,7 @@ public class EventMapper {
                             e,
                             initiators.get(e.getInitiator()),
                             confirmedRequests.getOrDefault(e.getId(), 0L),
-                            ratings.getOrDefault(e.getId(), 0.0)
+                            views.getOrDefault(e.getId(), 0L)
                     )
             );
         }
