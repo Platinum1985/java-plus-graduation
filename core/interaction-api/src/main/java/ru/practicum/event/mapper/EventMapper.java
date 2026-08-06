@@ -74,24 +74,19 @@ public class EventMapper {
     }
 
     public List<EventFullDto> eventToFullDto(
-            List<Event> event,
+            List<Event> events, // переименовал в множественное число для ясности
             Map<Long, UserShortDto> initiators,
-            Map<Long, Long> confirmedRequests, // <eventId, confirmedRequests>
-            Map<Long, Double> ratings // <eventId, ratings>
+            Map<Long, Long> confirmedRequests,
+            Map<Long, Double> ratings
     ) {
-        List<EventFullDto> result = new ArrayList<>();
-        for (Event e : event) {
-            result.add(
-                    eventToFullDto(
-                            e,
-                            initiators.get(e.getInitiator()),
-                            confirmedRequests.getOrDefault(e.getId(), 0L),
-                            ratings.getOrDefault(e.getId(), 0.0)
-                    )
-            );
-        }
-
-        return result;
+        return events.stream()
+                .map(event -> eventToFullDto(
+                        event,
+                        initiators.get(event.getInitiator()),
+                        confirmedRequests.getOrDefault(event.getId(), 0L),
+                        ratings.getOrDefault(event.getId(), 0.0)
+                ))
+                .collect(Collectors.toList());
     }
 
     public EventShortDto eventToShortDto(
