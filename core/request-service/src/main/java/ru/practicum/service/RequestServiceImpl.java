@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.event.client.EventClient;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.state.EventState;
@@ -15,6 +16,7 @@ import ru.practicum.request.RequestMapper;
 import ru.practicum.request.RequestStatus;
 import ru.practicum.request.dto.CreateUpdateRequestDto;
 import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.stats.service.collector.UserActionOuterClass.ActionTypeProto;
 import ru.practicum.user.User;
 import ru.practicum.user.UserClient;
 import ru.practicum.user.UserMapper;
@@ -32,15 +34,13 @@ public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final UserClient userClient;
     private final EventClient eventClient;
+    private final CollectorClient collectorClient;
 
     @Transactional
     @Override
     public ParticipationRequestDto createRequest(CreateUpdateRequestDto dto) {
         //Дата создания
         LocalDateTime now = LocalDateTime.now();
-
-        // Логирование начала обработки запроса
-        log.info("Начало создания запроса на участие: userId={}, eventId={}", dto.getUserId(), dto.getEventId());
         //Получение сущностей для создания связей через JPA
         Event event = findEvent(dto.getEventId());
         User requester = UserMapper.toEntity(findUser(dto.getUserId()));
@@ -89,6 +89,18 @@ public class RequestServiceImpl implements RequestService {
             initialStatus = RequestStatus.PENDING;
         }
 
+        try {
+            collectorClient.collectUserAction(
+                    requester.getId(),
+                    event.getId(),
+                    ActionTypeProto.ACTION_REGISTER
+            );
+            log.info("Регистрация на событие {} от пользователя {} отправлена в Collector",
+                    event.getId(), requester.getId());
+        } catch (Exception e) {
+            log.error("Ошибка отправки регистрации в Collector: {}", e.getMessage(), e);
+        }
+
         ParticipationRequest request = RequestMapper.toEntity(now, event.getId(), requester.getId(), initialStatus);
         ParticipationRequest saved = requestRepository.save(request);
         log.info("Создан запрос с id={}, статус={}", saved.getId(), initialStatus);
@@ -133,34 +145,14 @@ public class RequestServiceImpl implements RequestService {
         return RequestMapper.toParticipationRequestDto(canceled);
     }
 
-    // Получение пользователя
+    //Получение пользователя
     private UserDto findUser(Long userId) {
-        log.info("Вызов userClient.findUserById для userId={}", userId);
-
-        try {
-            UserDto user = userClient.findUserById(userId);
-            log.info("userClient.findUserById вернул данные: userId={}", userId);
-            log.debug("Получен UserDto: {}", user);
-            return user;
-        } catch (Exception e) {
-            log.error("Ошибка при вызове userClient.findUserById для userId={}: {}", userId, e.getMessage(), e);
-            throw e;
-        }
+        return userClient.findUserById(userId); // не известно проверяется ли отсутствие пользователя
     }
 
-    // Получение события
+    //Получение события
     private Event findEvent(Long eventId) {
-        log.info("Вызов eventClient.findById для eventId={}", eventId);
-
-        try {
-            Event event = eventClient.findById(eventId);
-            log.info("eventClient.findById вернул данные: eventId={}", eventId);
-            log.debug("Получен Event: {}", event);
-            return event;
-        } catch (Exception e) {
-            log.error("Ошибка при вызове eventClient.findById для eventId={}: {}", eventId, e.getMessage(), e);
-            throw e;
-        }
+        return eventClient.findById(eventId);
     }
 
     //Получение запроса
@@ -171,12 +163,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     private void checkUser(long userId) {
-        log.info("Проверка существования пользователя: userId={}", userId);
-
-        if (!userClient.existsByUserId(userId)) {
-            log.warn("Пользователь не найден: userId={}", userId);
+        if(!userClient.existsByUserId(userId))
             throw new NotFoundException("Не существует пользователя с id: " + userId);
-        }
-        log.info("Пользователь существует: userId={}", userId);
     }
 }

@@ -1,16 +1,13 @@
 package ru.practicum.event.dto.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.event.dto.category.CategoryDto;
 import ru.practicum.user.dto.UserShortDto;
 
-
-
 @Builder
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventFullDto {
@@ -29,5 +26,5 @@ public class EventFullDto {
     Boolean requestModeration;
     String state;
     String title;
-    Long views;
+    Double rating;
 }
